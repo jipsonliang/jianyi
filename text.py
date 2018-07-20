@@ -33,10 +33,10 @@ def getLinks(articleUrl, tag):
             for i in range(len(pageLinks)):
                 palinks = "https://movie.douban.com" + pageLinks[i].attrs["href"]
                 getLinks(palinks, tag=2)
-                print(1)
+
     else:
         getTag(links)
-        print(3)
+
 
 
 # 获取标题和影评
