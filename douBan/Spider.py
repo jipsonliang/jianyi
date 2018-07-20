@@ -15,7 +15,7 @@ random.seed(datetime.datetime.now())
 def store(tid, title, content):
     cur.execute('INSERT INTO pages (tid, title, content) VALUES (\"%s\",\"%s\",\"%s\")' % (tid, title, content))
     cur.connection.commit()
-    
+    print(1)
 
 def getLinks(articleUrl,tag):
     html = urlopen(articleUrl)
