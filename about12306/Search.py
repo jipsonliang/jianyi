@@ -1,4 +1,3 @@
-#_*_coding:utf-8_*_
 import urllib.request
 import json
 from city import station_names
@@ -38,7 +37,7 @@ class search_tickets:
         
         for lis in result_list:
             a = lis.split('|')
-            print(a[2],a[15])
+            # print(a)
             self.secret_key.setdefault(a[3],a[0])
             self.train_location.setdefault(a[3],a[15])
             self.train_no.setdefault(a[3],a[2])

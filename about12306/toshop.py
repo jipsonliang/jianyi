@@ -128,10 +128,10 @@ class LoginTic(object):
             'appid':'otn'
         }
         result = self.session.post(url=loginUrl,data=data,headers=self.headers,cookies=self.cookies,verify=False)
+        #解析json 返回字典型
         dic = loads(result.content)
-        print(result.content)
         mes = dic['result_message']
-        # 结果的编码方式是Unicode编码，所以对比的时候字符串前面加u,或者mes.encode('utf-8') == '登录成功'进行判断，否则报错
+        # 登录成功进行判断，否则报错
         if mes == '登录成功':
             print('恭喜你，登录成功，可以购票!')
         else:
@@ -142,39 +142,34 @@ class LoginTic(object):
 
         url2 = 'https://kyfw.12306.cn/passport/web/auth/uamtk'
         data2 = {
-            "appid": "otn",
-            '_json_att':""
+            "appid": "otn"
         }
-        # Func12306.cookies['uamtk'] = Func12306.uamtk
         response2 = self.session.post(url=url2, data=data2, headers=self.headers,cookies=self.cookies,verify=False)
         print("url:uamtk",self.session.cookies)
         try:
             dic2 = loads(response2.content)
         except:
-            return "NetWorkError"
+            return "uamtk解析json出错"
         resultCode2 = dic['result_code']
         resultMsg2 = dic['result_message']
         self.loginInfo = resultMsg2
         if resultCode2 == 0:
             print('验证通过')
         else:
-            return "authFail"
+            return "uamtk验证失败"
 
         if 'newapptk' in dic2.keys():
             self.tk = dic2["newapptk"]
-            # Func12306.cookies.pop('uamtk')
-            # Func12306.cookies['tk'] = Func12306.tk
 
         url3 = 'https://kyfw.12306.cn/otn/uamauthclient'
         data3 = {
-            "tk": self.tk,
-            '_json_att': "",
+            "tk": self.tk
         }
         response3 = self.session.post(url=url3, data=data3, headers=self.headers,cookies=self.cookies,verify=False)
         try:
             dic3 = loads(response3.content)
         except:
-            return "NetWorkError"
+            return "uamauthclient解析json错误"
         resultCode3 = dic3['result_code']
         resultMsg3 = dic3['result_message']
         self.loginInfo = resultMsg3
@@ -333,9 +328,7 @@ class LoginTic(object):
     def get_queue_count(self,from_code,to_code,seak):
         url = 'https://kyfw.12306.cn/otn/confirmPassenger/getQueueCount'
         thatdaydata = datetime.datetime.strptime(self.train_date, "%Y-%m-%d")
-        train_date = "{} {} {} {} 00:00:00 GMT+0800 (中国标准时间)".format(thatdaydata.strftime('%a'),
-                                                                     thatdaydata.strftime('%b'), self.train_date.split('-')[2],
-                                                                     self.train_date.split('-')[0])
+        train_date = "{} {} {} {} 00:00:00 GMT+0800 (中国标准时间)".format(thatdaydata.strftime('%a'),thatdaydata.strftime('%b'), self.train_date.split('-')[2],self.train_date.split('-')[0])
         data = {
             "train_date": train_date,
             "train_no": self.train_no[seak],
@@ -353,11 +346,10 @@ class LoginTic(object):
         try:
             dic = loads(response.content)
         except:
-            print("NetWorkError")
+            print("进入队列失败")
             return  False
         if dic['status']:
             print("进入队列成功")
-            print(train_date)
             return True
         else:
             print("进入队列失败")
@@ -418,10 +410,11 @@ class LoginTic(object):
             print("提交订单失败")
             return False
     def wait_time(self):
-        url = 'https://kyfw.12306.cn/otn/confirmPassenger/queryOrderWaitTime?random={}&tourFlag=dc&_json_att=&REPEAT_SUBMIT_TOKEN={}'.format(round(time.time()*1000),self.reSubmitTk)
-        response2 = self.session.get(url=url, headers=self.headers,cookies=self.cookies,verify=False)
+        url2 = 'https://kyfw.12306.cn/otn/confirmPassenger/queryOrderWaitTime?random={}&tourFlag=dc&_json_att=&REPEAT_SUBMIT_TOKEN={}'.format(round(time.time()*1000),self.reSubmitTk)
+        response2 = self.session.get(url=url2, headers=self.headers,cookies=self.cookies,verify=False)
         time.sleep(2)
-        response = self.session.get(url=url, headers=self.headers,cookies=self.cookies,verify=False)
+        url1 = 'https://kyfw.12306.cn/otn/confirmPassenger/queryOrderWaitTime?random={}&tourFlag=dc&_json_att=&REPEAT_SUBMIT_TOKEN={}'.format(round(time.time()*1000),self.reSubmitTk)
+        response = self.session.get(url=url1, headers=self.headers,cookies=self.cookies,verify=False)
         try:
             dic = loads(response.content)
             print(dic)
@@ -462,7 +455,7 @@ class LoginTic(object):
         try:
             url1 = 'https://kyfw.12306.cn/otn/leftTicket/log?leftTicketDTO.train_date={}&leftTicketDTO.from_station={}&leftTicketDTO.to_station={}&purpose_codes=ADULT'.format(train_date, from_code, to_code)
         except:
-            return "wrongtype"
+            return "错误的类型"
         response1 = self.session.get(url=url1, headers=self.headers,cookies=self.cookies, verify=False)
         try:
             dic1 = loads(response1.content)
@@ -474,6 +467,7 @@ class LoginTic(object):
             return False
         url ='https://kyfw.12306.cn/otn/leftTicket/query?' + urllib.parse.urlencode(param)
         response =self.session.get(url,headers=self.headers,cookies=self.cookies)
+        print(response.text)
         result = json.loads(response.text)
         result_list = result.get('data').get('result')
         tikie = []
@@ -500,7 +494,6 @@ class LoginTic(object):
         【1】列车信息：列车停运 [3]车次，【4】出发的车站，【5】到达的车站，【8】出发时间，【9】到达时间，【10】历时，【31】一等座 【30】二等座  【26】无座 【33】动卧 【29】硬座 【28】硬卧
         '''
     def main(self):
-        # self.session = sessions
         city = {}
         for i in station_names.split('@'):
             if i:
@@ -516,7 +509,6 @@ class LoginTic(object):
             self.to_code = city[self.to_station]
         return self.get_page(self.train_date,self.from_code,self.to_code,self.seak,self.from_station,self.to_station)
 if  __name__ == '__main__':
-    # checkYanZheng('0,3')
     login = LoginTic()
     yan = login.getImg()
     search = search_tickets()
@@ -535,7 +527,6 @@ if  __name__ == '__main__':
         if info:
             print("开始验证用户信息")
             is_user = login.check_user()
-            # 我的账号已经保存有三个人的信息，所以默认为三张牌
             a = [0]
             if  is_user:
                 seak = input("请选择您要购买的车次：")
